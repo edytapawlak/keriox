@@ -1,7 +1,8 @@
 use crate::prefix::{IdentifierPrefix, SelfAddressingPrefix};
 use serde::{Deserialize, Serialize};
 use serde_hex::{Compact, SerHex};
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[serde(tag = "seal", rename_all = "lowercase")]
 pub enum Seal {
     Digest(DigestSeal),
     Root(RootSeal),
@@ -9,19 +10,19 @@ pub enum Seal {
     Location(LocationSeal),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DigestSeal {
     #[serde(rename = "dig")]
     pub dig: SelfAddressingPrefix,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct RootSeal {
     #[serde(rename = "root")]
     pub tree_root: SelfAddressingPrefix,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct EventSeal {
     #[serde(rename = "pre")]
     pub prefix: IdentifierPrefix,
@@ -29,7 +30,7 @@ pub struct EventSeal {
     #[serde(rename = "dig")]
     pub event_digest: SelfAddressingPrefix,
 }
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct LocationSeal {
     #[serde(rename = "pre")]
     pub prefix: IdentifierPrefix,

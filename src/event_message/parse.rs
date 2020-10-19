@@ -1,10 +1,17 @@
 use super::{AttachedSignaturePrefix, EventMessage, SignedEventMessage};
+use crate::derivation::{
+    attached_signature_code::AttachedSignatureCode, self_signing::SelfSigning,
+};
 use crate::{
     derivation::attached_signature_code::b64_to_num, error::Error,
-    prefix::parse::attached_signature, state::IdentifierState, util::dfs_serializer,
+    event::event_data::interaction::InteractionEvent, event::event_data::EventData,
+    event::sections::seal::DigestSeal, event::Event, event::SerializationFormats,
+    prefix::parse::attached_signature, prefix::IdentifierPrefix, prefix::SelfAddressingPrefix,
+    state::IdentifierState, util::dfs_serializer,
 };
 use nom::{branch::*, combinator::*, error::ErrorKind, multi::*, sequence::*};
 use serde_transcode::transcode;
+use std::str::FromStr;
 
 fn json_message(s: &str) -> nom::IResult<&str, EventMessage> {
     let mut stream = serde_json::Deserializer::from_slice(s.as_bytes()).into_iter::<EventMessage>();
@@ -140,16 +147,16 @@ fn test_sigs() {
     assert_eq!(
         signatures("-AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAextra data"),
         Ok(("extra data", vec![
-            AttachedSignaturePrefix::new(SelfSigning::Ed25519Sha512, vec![0u8; 64], 0),
-            AttachedSignaturePrefix::new(SelfSigning::Ed448, vec![0u8; 114], 2)
+                AttachedSignaturePrefix::new(SelfSigning::Ed25519Sha512, vec![0u8; 64], 0),
+                AttachedSignaturePrefix::new(SelfSigning::Ed448, vec![0u8; 114], 2)
         ]))
     );
 
     assert_eq!(
         signatures("-AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA0AACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"),
         Ok(("", vec![
-            AttachedSignaturePrefix::new(SelfSigning::Ed25519Sha512, vec![0u8; 64], 0),
-            AttachedSignaturePrefix::new(SelfSigning::Ed448, vec![0u8; 114], 2)
+                AttachedSignaturePrefix::new(SelfSigning::Ed25519Sha512, vec![0u8; 64], 0),
+                AttachedSignaturePrefix::new(SelfSigning::Ed448, vec![0u8; 114], 2)
         ]))
     )
 }
@@ -202,4 +209,25 @@ fn test_sed_extraction() {
 
     // sed transcoding is not required until arbitrary content events are used
     // assert!(sed(stream.as_bytes()).is_ok())
+}
+
+#[test]
+fn test_ixn_deserialization() {
+    let stream = r#"
+{
+  "vs": "KERI10JSON0000e9_",
+  "pre": "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "sn": "1",
+  "ilk": "ixn",
+  "dig": "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "data": [
+    {
+      "seal": "digest",
+      "dig": "EAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    }
+  ]
+}
+        "#;
+
+    assert!(message(std::str::from_utf8(&stream.as_bytes()).expect("cant deser message")).is_ok());
 }

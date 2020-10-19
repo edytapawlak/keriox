@@ -444,5 +444,6 @@ mod tests {
             EventType::Interaction,
         ];
         assert!(test_mock_event_sequence(ok_seq).is_ok());
+        Ok(())
     }
 }
