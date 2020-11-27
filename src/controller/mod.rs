@@ -29,26 +29,27 @@ use crate::{
     prefix::IdentifierPrefix,
     prefix::Prefix,
     signer::CryptoBox,
+    signer::KeyManager,
     state::IdentifierState,
     util::dfs_serializer,
 };
 mod test;
-pub struct Controller {
-    key_manager: CryptoBox,
+pub struct Controller<K: KeyManager> {
+    key_manager: K,
     kel: EventLog,
     state: IdentifierState,
     receipts: HashMap<u64, Vec<SignedEventMessage>>,
     escrow_sigs: Vec<SignedEventMessage>,
     other_instances: HashMap<String, IdentifierState>,
 }
-impl Controller {
+impl<K: KeyManager> Controller<K> {
     // incept a state and keys
-    pub fn new() -> Result<Controller, Error> {
-        let key_manager = CryptoBox::new()?;
+    pub fn new(km: K) -> Result<Self, Error> {
+        let key_manager = km;
 
         let next_dig = SelfAddressing::Blake3_256.derive(&serialize_for_commitment(
             1,
-            &[Basic::Ed25519.derive(key_manager.next_pub_key.clone())],
+            &[Basic::Ed25519.derive(key_manager.next_pub_key())],
         ));
 
         let icp_data = InceptionEvent {
@@ -102,7 +103,7 @@ impl Controller {
         self.key_manager = self.key_manager.rotate()?;
         let next_dig = SelfAddressing::Blake3_256.derive(&serialize_for_commitment(
             1,
-            &[Basic::Ed25519.derive(self.key_manager.next_pub_key.clone())],
+            &[Basic::Ed25519.derive(self.key_manager.next_pub_key())],
         ));
         let ev = {
             Event {

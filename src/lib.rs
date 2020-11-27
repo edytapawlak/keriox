@@ -1,9 +1,9 @@
+pub mod controller;
 pub mod database;
 pub mod derivation;
 pub mod error;
 pub mod event;
 pub mod event_message;
-pub mod controller;
 pub mod log;
 pub mod prefix;
 pub mod processor;
