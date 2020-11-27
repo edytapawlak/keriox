@@ -33,7 +33,7 @@ use crate::{
     util::dfs_serializer,
 };
 mod test;
-pub struct Keri {
+pub struct Controller {
     key_manager: CryptoBox,
     kel: EventLog,
     state: IdentifierState,
@@ -41,9 +41,9 @@ pub struct Keri {
     escrow_sigs: Vec<SignedEventMessage>,
     other_instances: HashMap<String, IdentifierState>,
 }
-impl Keri {
+impl Controller {
     // incept a state and keys
-    pub fn new() -> Result<Keri, Error> {
+    pub fn new() -> Result<Controller, Error> {
         let key_manager = CryptoBox::new()?;
 
         let next_dig = SelfAddressing::Blake3_256.derive(&serialize_for_commitment(
@@ -88,7 +88,7 @@ impl Keri {
         let s0 = IdentifierState::default().verify_and_apply(&sigged)?;
         log.commit(sigged)?;
 
-        Ok(Keri {
+        Ok(Controller {
             kel: log,
             receipts: HashMap::new(),
             state: s0,

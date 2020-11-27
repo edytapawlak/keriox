@@ -1,9 +1,9 @@
-use crate::{error::Error, keri::Keri, prefix::Prefix};
+use crate::{error::Error, controller::Controller, prefix::Prefix};
 
 #[test]
 fn test_direct_mode() -> Result<(), Error> {
     // Init alice.
-    let mut alice = Keri::new()?;
+    let mut alice = Controller::new()?;
     assert_eq!(alice.get_state().sn, 0);
     assert_eq!(alice.kel.get_len(), 1);
     assert!(alice.other_instances.is_empty());
@@ -11,7 +11,7 @@ fn test_direct_mode() -> Result<(), Error> {
     assert!(alice.escrow_sigs.is_empty());
 
     // Init bob.
-    let mut bob = Keri::new()?;
+    let mut bob = Controller::new()?;
     assert_eq!(bob.get_state().sn, 0);
     assert_eq!(bob.get_log_len(), 1);
     assert!(bob.other_instances.is_empty());
